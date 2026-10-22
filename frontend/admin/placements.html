@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placements</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Confirm Placement</h3>
+    <p style="color:#666;font-size:0.85rem">Only applications with status "Selected" can be confirmed here.</p>
+    <div id="msg"></div>
+    <form id="form">
+      <label>Application</label>
+      <select id="application_id" required></select>
+      <label>Placement Date</label><input id="placement_date" type="date" required>
+      <label>Package (LPA)</label><input id="package_lpa" type="number" step="0.01" required>
+      <label>Joining Date</label><input id="joining_date" type="date">
+      <button class="btn" type="submit">Confirm Placement</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>All Placements</h3>
+    <input class="search-bar" id="searchPlacements" placeholder="🔍 Search placements...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Company</th><th>Job</th><th>Package</th><th>Status</th><th>Joining</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_placements').className = 'active';
+
+async function loadApplications() {
+    const apps = await apiRequest('/applications');
+    const selected = apps.filter(a => a.application_status === 'Selected');
+    document.getElementById('application_id').innerHTML = selected.map(a =>
+        `<option value="${a.application_id}">#${a.application_id} - ${a.first_name} ${a.last_name||''} - ${a.job_title}</option>`).join('')
+        || '<option value="">No Selected applications available</option>';
+}
+async function load() {
+    const rows = await apiRequest('/placements');
+    document.getElementById('body').innerHTML = rows.map(p => `
+        <tr>
+            <td>${p.first_name} ${p.last_name||''}</td>
+            <td>${p.company_name}</td>
+            <td>${p.job_title}</td>
+            <td>${p.package_lpa}</td>
+            <td><span class="badge Selected">${p.offer_status}</span></td>
+            <td>${fmtDate(p.joining_date)}</td>
+        </tr>`).join('');
+}
+document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest('/placements', 'POST', {
+            application_id: Number(application_id.value), placement_date: placement_date.value,
+            package_lpa: Number(package_lpa.value), joining_date: joining_date.value || null
+        });
+        msg.innerHTML = '<div class="msg success">Placement confirmed.</div>';
+        e.target.reset();
+        loadApplications();
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+});
+loadApplications();
+load();
+addTableSearch('searchPlacements', 'body');
+</script>
+</body>
+</html>

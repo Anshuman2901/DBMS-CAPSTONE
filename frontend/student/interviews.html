@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Interviews</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="jobs.html">Available Jobs</a>
+    <a href="applications.html">My Applications</a>
+    <a href="interviews.html" class="active">My Interviews</a>
+    <a href="placement.html">My Placement</a>
+  </div>
+  <div class="card">
+    <h3>My Interviews</h3>
+    <table>
+      <thead><tr><th>Company</th><th>Job</th><th>Round</th><th>Type</th><th>Date</th><th>Mode</th><th>Status</th></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Student');
+document.getElementById('welcome').textContent = getName();
+(async () => {
+    const rows = await apiRequest('/interviews');
+    document.getElementById('body').innerHTML = rows.map(i => `
+        <tr>
+            <td>${i.company_name}</td>
+            <td>${i.job_title}</td>
+            <td>${i.round_number}</td>
+            <td>${i.interview_type}</td>
+            <td>${new Date(i.interview_date).toLocaleString('en-IN')}</td>
+            <td>${i.interview_mode}</td>
+            <td>${i.interview_status}</td>
+        </tr>`).join('') || '<tr><td colspan="7">No interviews scheduled yet.</td></tr>';
+})();
+</script>
+</body>
+</html>

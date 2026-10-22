@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Companies</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Add Company</h3>
+    <div id="msg"></div>
+    <form id="form">
+      <label>Company Name</label><input id="company_name" required>
+      <label>Industry</label><input id="industry">
+      <label>Email</label><input id="email" type="email">
+      <label>Phone</label><input id="phone">
+      <label>Website</label><input id="website">
+      <label>Location</label><input id="location">
+      <button class="btn" type="submit">Add Company</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>All Companies</h3>
+    <input class="search-bar" id="searchCompanies" placeholder="🔍 Search companies...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Industry</th><th>Location</th><th>Email</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_companies').className = 'active';
+
+async function load() {
+    const rows = await apiRequest('/companies');
+    document.getElementById('body').innerHTML = rows.map(c => `
+        <tr><td>${c.company_name}</td><td>${c.industry||'-'}</td><td>${c.location||'-'}</td><td>${c.email||'-'}</td></tr>
+    `).join('');
+}
+document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest('/companies', 'POST', {
+            company_name: company_name.value, industry: industry.value, email: email.value,
+            phone: phone.value, website: website.value, location: location.value
+        });
+        msg.innerHTML = '<div class="msg success">Company added.</div>';
+        e.target.reset();
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+});
+load();
+addTableSearch('searchCompanies', 'body');
+</script>
+</body>
+</html>

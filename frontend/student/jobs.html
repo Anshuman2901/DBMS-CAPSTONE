@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Available Jobs</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="jobs.html" class="active">Available Jobs</a>
+    <a href="applications.html">My Applications</a>
+    <a href="interviews.html">My Interviews</a>
+    <a href="placement.html">My Placement</a>
+  </div>
+  <div class="card">
+    <h3>Open Job Openings</h3>
+    <div id="msg"></div>
+    <input class="search-bar" id="searchJobs" placeholder="🔍 Search jobs...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Company</th><th>Title</th><th>Type</th><th>Min CGPA</th><th>Max Backlogs</th><th>Package (LPA)</th><th>Deadline</th><th></th></tr></thead>
+        <tbody id="jobsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Student');
+document.getElementById('welcome').textContent = getName();
+
+async function apply(jobId) {
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest('/applications', 'POST', { job_id: jobId });
+        msg.innerHTML = `<div class="msg success">Application submitted.</div>`;
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+}
+
+async function load() {
+    const jobs = await apiRequest('/jobs');
+    document.getElementById('jobsBody').innerHTML = jobs.map(j => `
+        <tr>
+            <td>${j.company_name}</td>
+            <td>${j.job_title}</td>
+            <td>${j.job_type}</td>
+            <td>${j.minimum_cgpa}</td>
+            <td>${j.max_backlogs}</td>
+            <td>${j.salary_package}</td>
+            <td>${fmtDate(j.application_deadline)}</td>
+            <td><button class="btn" onclick="apply(${j.job_id})">Apply</button></td>
+        </tr>`).join('');
+}
+load();
+addTableSearch('searchJobs', 'jobsBody');
+</script>
+</body>
+</html>

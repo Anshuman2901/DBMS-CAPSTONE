@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Applications</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="jobs.html">Available Jobs</a>
+    <a href="applications.html" class="active">My Applications</a>
+    <a href="interviews.html">My Interviews</a>
+    <a href="placement.html">My Placement</a>
+  </div>
+  <div class="card">
+    <h3>My Applications</h3>
+    <table>
+      <thead><tr><th>Company</th><th>Job Title</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Student');
+document.getElementById('welcome').textContent = getName();
+(async () => {
+    const apps = await apiRequest('/applications');
+    document.getElementById('body').innerHTML = apps.map(a => `
+        <tr>
+            <td>${a.company_name}</td>
+            <td>${a.job_title}</td>
+            <td>${fmtDate(a.application_date)}</td>
+            <td><span class="badge ${a.application_status}">${a.application_status}</span></td>
+        </tr>`).join('') || '<tr><td colspan="4">No applications yet.</td></tr>';
+})();
+</script>
+</body>
+</html>

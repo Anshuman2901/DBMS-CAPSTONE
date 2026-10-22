@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Applications by Company</h3>
+    <table><thead><tr><th>Company</th><th>Applications</th></tr></thead><tbody id="t1"></tbody></table>
+  </div>
+  <div class="card">
+    <h3>Department-wise Placement</h3>
+    <table><thead><tr><th>Department</th><th>Total Students</th><th>Placed</th><th>%</th><th>Avg Package</th><th>Highest Package</th></tr></thead><tbody id="t2"></tbody></table>
+  </div>
+  <div class="card">
+    <h3>Students Not Placed</h3>
+    <table><thead><tr><th>Roll No</th><th>Name</th><th>Department</th></tr></thead><tbody id="t3"></tbody></table>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_reports').className = 'active';
+
+(async () => {
+    const r1 = await apiRequest('/reports/company-applications');
+    document.getElementById('t1').innerHTML = r1.map(x => `<tr><td>${x.company_name}</td><td>${x.total_applications}</td></tr>`).join('');
+
+    const r2 = await apiRequest('/reports/department-placement');
+    document.getElementById('t2').innerHTML = r2.map(x => `<tr><td>${x.department}</td><td>${x.total_students}</td><td>${x.placed_students}</td><td>${x.placement_percentage}%</td><td>${x.avg_package_lpa||0}</td><td>${x.highest_package_lpa||0}</td></tr>`).join('');
+
+    const r3 = await apiRequest('/reports/not-placed');
+    document.getElementById('t3').innerHTML = r3.map(x => `<tr><td>${x.roll_no}</td><td>${x.first_name} ${x.last_name||''}</td><td>${x.department}</td></tr>`).join('');
+})();
+</script>
+</body>
+</html>

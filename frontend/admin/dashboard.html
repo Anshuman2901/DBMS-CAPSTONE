@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="students.html">Students</a>
+    <a href="companies.html">Companies</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="applications.html">Applications</a>
+    <a href="interviews.html">Interviews</a>
+    <a href="placements.html">Placements</a>
+    <a href="reports.html">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Overview</h3>
+    <div class="grid" id="statGrid"></div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+(async () => {
+    const s = await apiRequest('/reports/summary');
+    document.getElementById('statGrid').innerHTML = `
+        <div class="card stat" style="border-left: 4px solid var(--primary);">
+            <div style="font-size: 24px; margin-bottom: 8px;">🎓</div>
+            <div class="num">${s.total_students}</div><div class="label">Students</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #28a745;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
+            <div class="num">${s.total_companies}</div><div class="label">Companies</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #ffc107;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💼</div>
+            <div class="num">${s.total_jobs}</div><div class="label">Jobs</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #17a2b8;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+            <div class="num">${s.total_applications}</div><div class="label">Applications</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #28a745;">
+            <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
+            <div class="num">${s.total_placed}</div><div class="label">Placed</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #6f42c1;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💰</div>
+            <div class="num">${s.avg_package || 0} <span style="font-size:1rem;color:var(--muted)">LPA</span></div><div class="label">Avg Package</div>
+        </div>
+        <div class="card stat" style="border-left: 4px solid #e83e8c;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🚀</div>
+            <div class="num">${s.highest_package || 0} <span style="font-size:1rem;color:var(--muted)">LPA</span></div><div class="label">Highest Package</div>
+        </div>
+    `;
+})();
+</script>
+</body>
+</html>

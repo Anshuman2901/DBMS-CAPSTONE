@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Jobs</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Create Job Opening</h3>
+    <div id="msg"></div>
+    <form id="form">
+      <label>Company</label>
+      <select id="company_id" required></select>
+      <label>Job Title</label><input id="job_title" required>
+      <label>Description</label><textarea id="job_description" rows="3"></textarea>
+      <label>Job Type</label>
+      <select id="job_type"><option>Full-time</option><option>Internship</option></select>
+      <label>Location</label><input id="location">
+      <label>Minimum CGPA</label><input id="minimum_cgpa" type="number" step="0.01" value="0">
+      <label>Maximum Backlogs</label><input id="max_backlogs" type="number" value="0">
+      <label>Package (LPA)</label><input id="salary_package" type="number" step="0.01" value="0">
+      <label>Application Deadline</label><input id="application_deadline" type="date" required>
+      <button class="btn" type="submit">Create Job</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>All Jobs</h3>
+    <input class="search-bar" id="searchJobs" placeholder="🔍 Search jobs...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Company</th><th>Title</th><th>Type</th><th>Min CGPA</th><th>Package</th><th>Deadline</th><th>Status</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_jobs').className = 'active';
+
+async function loadCompanies() {
+    const companies = await apiRequest('/companies');
+    document.getElementById('company_id').innerHTML = companies.map(c => `<option value="${c.company_id}">${c.company_name}</option>`).join('');
+}
+async function load() {
+    const rows = await apiRequest('/jobs');
+    document.getElementById('body').innerHTML = rows.map(j => `
+        <tr>
+            <td>${j.company_name}</td><td>${j.job_title}</td><td>${j.job_type}</td>
+            <td>${j.minimum_cgpa}</td><td>${j.salary_package}</td><td>${fmtDate(j.application_deadline)}</td>
+            <td><span class="badge ${j.job_status}">${j.job_status}</span></td>
+        </tr>`).join('');
+}
+document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest('/jobs', 'POST', {
+            company_id: Number(company_id.value), job_title: job_title.value, job_description: job_description.value,
+            job_type: job_type.value, location: location.value, minimum_cgpa: Number(minimum_cgpa.value),
+            max_backlogs: Number(max_backlogs.value), salary_package: Number(salary_package.value),
+            application_deadline: application_deadline.value
+        });
+        msg.innerHTML = '<div class="msg success">Job created.</div>';
+        e.target.reset();
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+});
+loadCompanies();
+load();
+addTableSearch('searchJobs', 'body');
+</script>
+</body>
+</html>

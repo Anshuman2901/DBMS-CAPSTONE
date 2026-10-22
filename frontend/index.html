@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement Portal - Login</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-box">
+    <h2>Placement Portal</h2>
+    <div id="msg"></div>
+    <form id="loginForm">
+      <label>Email</label>
+      <input type="email" id="email" required placeholder="you@example.com">
+      <label>Password</label>
+      <input type="password" id="password" required placeholder="Password@123">
+      <button class="btn" style="width:100%" type="submit">Login</button>
+    </form>
+    <p style="font-size:0.8rem;color:#666;margin-top:16px">
+      Demo admin: admin@placement.com<br>
+      Demo student: any student email from sample_data.sql<br>
+      Password (both): Password@123
+    </p>
+  </div>
+</div>
+<script src="js/api.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    msg.innerHTML = '';
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    try {
+        const data = await apiRequest('/auth/login', 'POST', { email, password });
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('student_id', data.student_id || '');
+        localStorage.setItem('name', data.name);
+        window.location.href = data.role === 'Admin' ? 'admin/dashboard.html' : 'student/dashboard.html';
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

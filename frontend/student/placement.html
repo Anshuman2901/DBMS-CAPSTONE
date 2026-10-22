@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Placement</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="jobs.html">Available Jobs</a>
+    <a href="applications.html">My Applications</a>
+    <a href="interviews.html">My Interviews</a>
+    <a href="placement.html" class="active">My Placement</a>
+  </div>
+  <div class="card" id="box">
+    <h3>My Placement</h3>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Student');
+document.getElementById('welcome').textContent = getName();
+(async () => {
+    const rows = await apiRequest('/placements');
+    const box = document.getElementById('box');
+    if (rows.length === 0) {
+        box.innerHTML += '<p>No placement yet. Keep applying!</p>';
+        return;
+    }
+    const p = rows[0];
+    box.innerHTML += `
+        <p><b>Company:</b> ${p.company_name}</p>
+        <p><b>Job Title:</b> ${p.job_title}</p>
+        <p><b>Package:</b> ${p.package_lpa} LPA</p>
+        <p><b>Status:</b> <span class="badge Selected">${p.offer_status}</span></p>
+        <p><b>Placement Date:</b> ${fmtDate(p.placement_date)}</p>
+        <p><b>Joining Date:</b> ${fmtDate(p.joining_date)}</p>
+    `;
+})();
+</script>
+</body>
+</html>

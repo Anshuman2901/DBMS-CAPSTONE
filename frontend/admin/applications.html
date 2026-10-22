@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applications</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>All Applications</h3>
+    <div id="msg"></div>
+    <input class="search-bar" id="searchApps" placeholder="🔍 Search applications...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Student</th><th>Company</th><th>Job</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_applications').className = 'active';
+
+async function setStatus(id, status) {
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest(`/applications/${id}/status`, 'PUT', { application_status: status });
+        msg.innerHTML = '<div class="msg success">Status updated.</div>';
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+}
+
+async function load() {
+    const rows = await apiRequest('/applications');
+    document.getElementById('body').innerHTML = rows.map(a => `
+        <tr>
+            <td>${a.application_id}</td>
+            <td>${a.first_name} ${a.last_name||''} (${a.roll_no})</td>
+            <td>${a.company_name}</td>
+            <td>${a.job_title}</td>
+            <td>${fmtDate(a.application_date)}</td>
+            <td><span class="badge ${a.application_status}">${a.application_status}</span></td>
+            <td>
+                <select onchange="setStatus(${a.application_id}, this.value)">
+                    <option value="">Change status...</option>
+                    <option value="Shortlisted">Shortlisted</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Selected">Selected</option>
+                </select>
+            </td>
+        </tr>`).join('');
+}
+load();
+addTableSearch('searchApps', 'body');
+</script>
+</body>
+</html>

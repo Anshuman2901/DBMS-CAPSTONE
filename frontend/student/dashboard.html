@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="jobs.html">Available Jobs</a>
+    <a href="applications.html">My Applications</a>
+    <a href="interviews.html">My Interviews</a>
+    <a href="placement.html">My Placement</a>
+  </div>
+  <div class="card">
+    <h3>Welcome, <span id="name"></span> 👋</h3>
+    <div class="grid" id="statGrid"></div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Student');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('name').textContent = getName();
+
+(async () => {
+    try {
+        const profile = await apiRequest('/students/me');
+        const apps = await apiRequest('/applications');
+        const interviews = await apiRequest('/interviews');
+        const placements = await apiRequest('/placements');
+        const placed = placements.length > 0 ? placements[0].offer_status : 'Not placed yet';
+
+        document.getElementById('statGrid').innerHTML = `
+            <div class="card stat" style="border-left: 4px solid var(--primary);">
+                <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                <div class="num">${profile.cgpa}</div><div class="label">CGPA</div>
+            </div>
+            <div class="card stat" style="border-left: 4px solid #17a2b8;">
+                <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+                <div class="num">${apps.length}</div><div class="label">Applications</div>
+            </div>
+            <div class="card stat" style="border-left: 4px solid #ffc107;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🎯</div>
+                <div class="num">${interviews.length}</div><div class="label">Interviews</div>
+            </div>
+            <div class="card stat" style="border-left: 4px solid #28a745;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🏆</div>
+                <div class="num" style="font-size: 1.5rem; margin-top: 5px;">${placed}</div><div class="label">Placement Status</div>
+            </div>
+        `;
+    } catch (err) {
+        document.getElementById('statGrid').innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+})();
+</script>
+</body>
+</html>

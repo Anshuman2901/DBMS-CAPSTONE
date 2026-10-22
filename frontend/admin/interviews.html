@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interviews</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="navbar">
+  <span class="brand">Placement Portal - Admin</span>
+  <div><span id="welcome"></span><a href="#" onclick="logout()">Logout</a></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="students.html" id="t_students">Students</a>
+    <a href="companies.html" id="t_companies">Companies</a>
+    <a href="jobs.html" id="t_jobs">Jobs</a>
+    <a href="applications.html" id="t_applications">Applications</a>
+    <a href="interviews.html" id="t_interviews">Interviews</a>
+    <a href="placements.html" id="t_placements">Placements</a>
+    <a href="reports.html" id="t_reports">Reports</a>
+  </div>
+  <div class="card">
+    <h3>Schedule Interview</h3>
+    <div id="msg"></div>
+    <form id="form">
+      <label>Application</label>
+      <select id="application_id" required></select>
+      <label>Round Number</label><input id="round_number" type="number" value="1" required>
+      <label>Interview Type</label>
+      <select id="interview_type"><option>Aptitude</option><option>Technical</option><option>HR</option></select>
+      <label>Date &amp; Time</label><input id="interview_date" type="datetime-local" required>
+      <label>Mode</label>
+      <select id="interview_mode"><option>Online</option><option>Offline</option></select>
+      <button class="btn" type="submit">Schedule</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>All Interviews</h3>
+    <input class="search-bar" id="searchInterviews" placeholder="🔍 Search interviews...">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Company</th><th>Round</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../js/api.js"></script>
+<script>
+requireLogin('Admin');
+document.getElementById('welcome').textContent = getName();
+document.getElementById('t_interviews').className = 'active';
+
+async function loadApplications() {
+    const apps = await apiRequest('/applications');
+    document.getElementById('application_id').innerHTML = apps.map(a =>
+        `<option value="${a.application_id}">#${a.application_id} - ${a.first_name} ${a.last_name||''} - ${a.job_title}</option>`).join('');
+}
+async function load() {
+    const rows = await apiRequest('/interviews');
+    document.getElementById('body').innerHTML = rows.map(i => `
+        <tr>
+            <td>${i.first_name} ${i.last_name||''}</td>
+            <td>${i.company_name}</td>
+            <td>${i.round_number}</td>
+            <td>${i.interview_type}</td>
+            <td>${new Date(i.interview_date).toLocaleString('en-IN')}</td>
+            <td>${i.interview_status}</td>
+        </tr>`).join('');
+}
+document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    try {
+        await apiRequest('/interviews', 'POST', {
+            application_id: Number(application_id.value), round_number: Number(round_number.value),
+            interview_type: interview_type.value, interview_date: interview_date.value.replace('T',' ') + ':00',
+            interview_mode: interview_mode.value
+        });
+        msg.innerHTML = '<div class="msg success">Interview scheduled.</div>';
+        e.target.reset();
+        load();
+    } catch (err) {
+        msg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    }
+});
+loadApplications();
+load();
+addTableSearch('searchInterviews', 'body');
+</script>
+</body>
+</html>

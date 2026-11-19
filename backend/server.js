@@ -37,10 +37,14 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+let server;
+if (!process.env.VERCEL) {
+    server = app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('SIGTERM received. Shutting down gracefully...');
+        server.close(() => process.exit(0));
+    });
+}
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received. Shutting down gracefully...');
-    server.close(() => process.exit(0));
-});
+module.exports = app;

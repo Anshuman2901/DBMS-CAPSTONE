@@ -1,6 +1,9 @@
-// Small shared helper used by every page.
-// API_BASE must match the port your backend is running on (see backend/.env).
-const API_BASE = 'http://localhost:5000/api';
+// Dynamically determine API base URL:
+// - If using Live Server (port 5500 or 3000), point to local backend port 5000
+// - When deployed or served directly by Express, use relative '/api'
+const API_BASE = (window.location.port === '5500' || window.location.port === '3000')
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 function getToken() { return localStorage.getItem('token'); }
 function getRole() { return localStorage.getItem('role'); }
